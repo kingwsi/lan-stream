@@ -13,11 +13,52 @@ body {
     border-radius: 5px;
 }
 
-#status {
+.upload {
+    position: relative;
+    display: inline-block;
+    border: 1px solid #b7b7b7;
+    border-radius: 4px;
+    padding: 4px 12px;
+    overflow: hidden;
+    color: #000000;
+    text-decoration: none;
+    text-indent: 0;
+    line-height: 20px;
+}
+.upload:hover {
+    background: #d9d9d9;
+    border-color: #8c8c8c;
+    text-decoration: none;
+}
+.upload input{
+    border: none;
+    background: none;
+    position: absolute;
+    font-size: 100px;
+    right: 0;
+    top: 0;
+    opacity: 0;
+}
+.qr{
+    width: 100%;
+    text-align: center;
+}
+.qr img {
+    
+}
+
+.status {
+    width: 100%;
+    text-align: center;
+    position: relative;
+    top: -18px;
+}
+
+.status span {
     border-radius: 15px;
     padding: 3px 12px;
     color: #fff;
-    margin-bottom: 5px;
+    margin: 0 auto;
 }
 
 #history tr td span{

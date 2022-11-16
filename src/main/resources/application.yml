@@ -8,3 +8,5 @@ spring:
 
 web:
   upload-path: /Users/ws/Downloads
+host:
+  url: http://localhost:8080

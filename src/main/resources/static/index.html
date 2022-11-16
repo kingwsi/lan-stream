@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hello WebSocket</title>
+    <title>文件共享🎉</title>
     <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="/main.css" rel="stylesheet">
     <script src="/webjars/jquery/jquery.min.js"></script>
@@ -16,34 +16,67 @@
     Javascript and reload this page!</h2></noscript>
 <div id="main-content" class="container">
     <div class="row">
-        <div class="col-md-12 col-sm-12">
-            <form class="form-inline">
-                <form class="form-inline">
-                    <div class="form-group">
+        <div class="col-md-3 col-sm-12">
+            <div class="col-md-12 col-sm-12">
+                <div class="qr" style="border: none">
+                    <img src="/qr?width=150&height=150" alt="...">
+                    <div class="status">
                         <span id="status"></span>
                     </div>
-                </form>
-            </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9 col-sm-12">
+            <div class="row">
+                <div class="col-md-12 col-sm-12">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <textarea id="message"  class="form-control" rows="3" placeholder="Your message here..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <button id="send" class="btn btn-default" type="submit">发送</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <a href="javascript:;" class="upload">发送文件
+                                <input type="file" id="myfile" class="form-control" placeholder="Upload file here...">
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-5 col-sm-12">
-            <form class="form-inline">
-                <div class="form-group">
-                    <input type="file" id="myfile" class="form-control" placeholder="Upload file here...">
-                </div>
-            </form>
-        </div>
-        <div class="col-md-6 col-sm-11">
-            <form class="form-inline">
-                <div class="form-group">
-                    <label for="message">message</label>
-                    <input type="text" id="message" class="form-control" placeholder="Your message here...">
-                </div>
-                <button id="send" class="btn btn-default" type="submit">Send</button>
-            </form>
-        </div>
-    </div>
+<!--    <div class="row">-->
+<!--        <div class="col-md-2 col-sm-12">-->
+<!--            <form class="form-inline">-->
+<!--                <div class="form-group">-->
+<!--                    <a href="#" class="thumbnail"><img src="/qr" alt=""></a>-->
+<!--                </div>-->
+<!--            </form>-->
+<!--        </div>-->
+<!--        <div class="col-md-2 col-sm-12">-->
+<!--            <form class="form-inline">-->
+<!--                <div class="form-group">-->
+<!--                    <input type="file" id="myfile" class="form-control" placeholder="Upload file here...">-->
+<!--                </div>-->
+<!--            </form>-->
+<!--        </div>-->
+<!--        <div class="col-md-6 col-sm-11">-->
+<!--            <form class="form-inline">-->
+<!--                <div class="form-group">-->
+<!--                    <label for="message">message</label>-->
+<!--                    <input type="text" id="message" class="form-control" placeholder="Your message here...">-->
+<!--                </div>-->
+<!--                <button id="send" class="btn btn-default" type="submit">Send</button>-->
+<!--            </form>-->
+<!--        </div>-->
+<!--    </div>-->
     <div class="row">
         <div class="col-md-12 col-sm-12">
             <table id="conversation" class="table table-striped">

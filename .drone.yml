@@ -1,0 +1,53 @@
+kind: pipeline
+name: default
+
+steps:
+- name: Maven Package
+  image: maven:3-jdk-8
+  volumes:
+  - name: maven-repository
+    path: /root/.m2
+  commands:
+  - mvn -Dmaven.test.skip=true clean package
+  - ls /drone/src/target | grep -v *.jar | xargs rm -rf
+  - echo "Maven Package Success!"
+- name: deploy
+  image: drillster/drone-rsync
+  settings:
+    hosts:
+      - 192.168.123.232
+    key:
+      from_secret: private_key
+    source: /drone/src/target/
+    target: /opt/app/
+    include:
+      - "lan-stream-0.0.1-SNAPSHOT.jar"
+    exclude:
+      - "**.*"
+- name: ssh
+  image: appleboy/drone-ssh
+  settings:
+    host:
+      - 192.168.123.232
+    username: root
+    key:
+      from_secret: private_key
+    port: 22
+    command_timeout: 2m
+    script:
+      - pid=$(jps | grep home-st | awk "{print \$1}");if [ -n "$pid" ]; then echo "Shutdown...${pid}";kill -9 $pid; fi
+      - java -jar -Duser.timezone=GMT+8  /opt/app/lan-stream-0.0.1-SNAPSHOT.jar --spring.profiles.active=test >/dev/null 2>log &
+      - echo Done!
+- name: dingtalk
+  image: lddsb/drone-dingtalk-message
+  settings:
+    type: markdown
+    token: 
+      from_secret: dingtalk_token
+    secret:
+      from_secret: dingtalk_secret
+
+volumes:
+  - name: maven-repository
+    host:
+      path: /root/.m2

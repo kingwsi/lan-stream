@@ -71,3 +71,7 @@ body {
     font-size: .6em;
     color: #979797;
 }
+
+.upload-progress {
+    text-shadow: #337ab7 1px 0 0, #337ab7 0 1px 0, #337ab7 -1px 0 0, #337ab7 0 -1px 0;
+}

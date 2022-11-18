@@ -46,7 +46,7 @@ function sendMessage() {
 
 function sendFile() {
     // 1. 将 jQuery 对象转化为 DOM 对象，并获取选中的文件列表
-    const files = $("#myfile")[0].files;
+    const files = $("#uploadFile")[0].files;
     // 2. 判断是否选择了文件
     if (files.length <= 0) {
         return;
@@ -60,6 +60,24 @@ function sendFile() {
         data: fd,
         contentType: false,
         processData: false,
+        xhr: function() {
+            let xhr = new XMLHttpRequest()
+            // 添加文件上传的监听
+            // onprogress:进度监听事件，只要上传文件的进度发生了变化，就会自动的触发这个事件
+            xhr.upload.onprogress = function(e) {
+                console.log(e)
+                let percent = (e.loaded / e.total) * 100
+                const percentStr = (percent).toFixed(2) + '%'
+                $('.progress').attr("style", "")
+                if (percent < 20) {
+                    $('.upload-progress').attr("style", "width: 20%").text('上传中 ' + percentStr)
+                } else {
+                    $('.upload-progress').attr("style", "width: " + percentStr).text('上传中 ' + percentStr)
+                }
+                $('.upload').hide()
+            }
+            return xhr
+        },
         success: function (data) {
             const json = {
                 'type': fileName.substr(fileName.lastIndexOf('.') + 1),
@@ -68,7 +86,11 @@ function sendFile() {
                 'content': data
             }
             stompClient.send("/app/send", {}, JSON.stringify(json));
-            $("#myfile").val("")
+            $("#uploadFile").val("")
+
+            $('.upload-progress').attr("style", "width: 0%").text("0%")
+            $('.progress').hide()
+            $('.upload').show()
         }
     })
 
@@ -121,7 +143,7 @@ window.onload = function () {
     $("#send").click(function () {
         sendMessage();
     });
-    $("#myfile").change(function () {
+    $("#uploadFile").change(function () {
         sendFile();
     });
     connect();

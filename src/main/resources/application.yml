@@ -1,7 +1,8 @@
 spring:
   servlet:
     multipart:
-      max-file-size: 10MB
+      max-file-size: 1000MB
+      max-request-size: 1000MB
   web:
     resources:
       static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:${web.upload-path}
@@ -10,3 +11,4 @@ web:
   upload-path: /Users/ws/Downloads
 host:
   url: http://localhost:8080
+max-history: 5

@@ -16,12 +16,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -36,12 +39,26 @@ public class StreamController {
 	@Value("${host.url}")
 	private String hostUrl;
 
+	@Value("${max-history}")
+	private int maxHistory = 10;
+
+	@Value("${web.upload-path}")
+	private String uploadPath;
+
 	@MessageMapping("/send")
 	@SendTo("/topic/message")
 	public Message greeting(Message message) {
 		if (!message.isOld()) {
-			if (arrayBlockingQueue.size() >= 5) {
-				arrayBlockingQueue.poll();
+			if (arrayBlockingQueue.size() >= maxHistory) {
+				Message poll = arrayBlockingQueue.poll();
+				try {
+					// 删除无效文件
+					if (poll != null && "text".equals(poll.getType()) && StringUtils.hasText(poll.getContent())) {
+						Files.deleteIfExists(Paths.get(uploadPath, poll.getContent()));
+					}
+				} catch (Exception e) {
+					log.error("删除失败：{}, {}", e, poll);
+				}
 			}
 			arrayBlockingQueue.add(message);
 		}

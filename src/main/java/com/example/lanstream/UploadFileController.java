@@ -24,7 +24,7 @@ public class UploadFileController {
     @RequestMapping(value = "/file-upload", method = RequestMethod.POST)
     @ResponseBody
     public String uploadFile(@RequestParam("file") MultipartFile multipartFile) throws IOException {
-        multipartFile.transferTo(new File(uploadPath + "/files/" + multipartFile.getOriginalFilename()));
-        return "/files/" + multipartFile.getOriginalFilename();
+        multipartFile.transferTo(new File(uploadPath + "/" + multipartFile.getOriginalFilename()));
+        return "/" + multipartFile.getOriginalFilename();
     }
 }

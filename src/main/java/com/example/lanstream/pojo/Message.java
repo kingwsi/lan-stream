@@ -1,8 +1,10 @@
 package com.example.lanstream.pojo;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class Message {
 
 	private String content;

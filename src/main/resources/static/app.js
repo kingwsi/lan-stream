@@ -70,7 +70,7 @@ function sendFile() {
                 const percentStr = (percent).toFixed(2) + '%'
                 $('.progress').attr("style", "")
                 if (percent < 20) {
-                    $('.upload-progress').attr("style", "width: 20%").text('上传中 ' + percentStr)
+                    $('.upload-progress').attr("style", "width: 20%").text('上传中...')
                 } else {
                     $('.upload-progress').attr("style", "width: " + percentStr).text('上传中 ' + percentStr)
                 }

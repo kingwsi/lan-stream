@@ -17,6 +17,7 @@ function connect() {
         setConnected(true);
         console.log('Connected: ' + frame);
         stompClient.subscribe('/topic/message', function (greeting) {
+            console.log(greeting.body)
             showMessage(JSON.parse(greeting.body));
         });
     }, function (message) {
@@ -105,8 +106,11 @@ function showMessage(data) {
         <span class="msg-time">${new Date(data.timestamp).toLocaleString()}</span>
         </span></td></tr>`);
     } else if (data.type === 'text') {
-        $("#history").prepend(`<tr><td onclick="copyTextToClipboard('${data.content}')">
-        <span>${data.content}</span><br/>
+        let content = data.content.replaceAll('<', '&lt')
+            .replaceAll('>', '&gt')
+        console.log('-0---0',content)
+        $("#history").prepend(`<tr><td>
+        <pre><code>${content}</code></pre><br/>
         <span class="msg-time">${new Date(data.timestamp).toLocaleString()}</span>
         </td></tr>`);
     } else {
@@ -148,6 +152,11 @@ window.onload = function () {
     });
     connect();
     showHistoryMsg();
+}
+
+window.focus = function (){
+    console.log("重新连接！")
+    connect()
 }
 
 

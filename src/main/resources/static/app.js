@@ -110,7 +110,7 @@ function showMessage(data) {
             .replaceAll('>', '&gt')
         console.log('-0---0',content)
         $("#history").prepend(`<tr><td>
-        <pre><code>${content}</code></pre><br/>
+        <pre><code style="cursor: pointer" onclick="copyTextToClipboard(this)">${content}</code></pre><br/>
         <span class="msg-time">${new Date(data.timestamp).toLocaleString()}</span>
         </td></tr>`);
     } else {
@@ -163,33 +163,16 @@ window.focus = function (){
 /**
  * https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
  */
-function copyTextToClipboard(text) {
-    if (!text) {
-        text = document.querySelector('#result-area').textContent
+function copyTextToClipboard(e) {
+    let transfer = document.createElement('textarea');
+    document.body.appendChild(transfer);
+    transfer.value = $(e).text();  // 这里表示想要复制的内容
+    transfer.focus();
+    transfer.select();
+    if (document.execCommand('copy')) {
+        document.execCommand('copy');
     }
-    var textArea = document.createElement("textarea");
-    textArea.style.position = 'fixed';
-    textArea.style.top = 0;
-    textArea.style.left = 0;
-    textArea.style.width = '2em';
-    textArea.style.height = '2em';
-    textArea.style.padding = 0;
-    textArea.style.border = 'none';
-    textArea.style.outline = 'none';
-    textArea.style.boxShadow = 'none';
-    textArea.style.background = 'transparent';
-    textArea.value = text;
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-        var successful = document.execCommand('copy');
-        var msg = successful ? 'successful' : 'unsuccessful';
-        console.log('Copying text command was ' + msg);
-    } catch (err) {
-        console.log('Oops, unable to copy');
-    }
-    document.body.removeChild(textArea);
+    document.body.removeChild(transfer);
 }
 
 function isAssetTypeAnImage(ext) {

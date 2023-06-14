@@ -51,7 +51,6 @@ body {
     width: 100%;
     text-align: center;
     position: relative;
-    top: -18px;
 }
 
 .status span {
@@ -74,4 +73,21 @@ body {
 
 .upload-progress {
     text-shadow: #337ab7 1px 0 0, #337ab7 0 1px 0, #337ab7 -1px 0 0, #337ab7 0 -1px 0;
+}
+
+td{
+    position: relative;
+}
+
+.button-content {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 5px;
+    color: #8c8c8c;
+    cursor: pointer;
+}
+
+.button-content:hover {
+    color: #5b5b5b;
 }

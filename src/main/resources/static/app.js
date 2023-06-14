@@ -108,9 +108,9 @@ function showMessage(data) {
     } else if (data.type === 'text') {
         let content = data.content.replaceAll('<', '&lt')
             .replaceAll('>', '&gt')
-        console.log('-0---0',content)
         $("#history").prepend(`<tr><td>
-        <pre><code style="cursor: pointer" onclick="copyTextToClipboard(this)">${content}</code></pre><br/>
+        <pre><code>${content}</code></pre>
+        <div class="button-content" onclick="copyCode(this)">复制</div>
         <span class="msg-time">${new Date(data.timestamp).toLocaleString()}</span>
         </td></tr>`);
     } else {
@@ -152,6 +152,7 @@ window.onload = function () {
     });
     connect();
     showHistoryMsg();
+    loadUrlPath();
 }
 
 window.focus = function (){
@@ -184,4 +185,25 @@ function downloadFile(url) {
     $form.attr('action', url);
     $form.appendTo($('body'));
     $form.submit();
+}
+
+function copyCode(button) {
+    var code = button.previousElementSibling.textContent;
+
+    navigator.clipboard.writeText(code)
+        .then(function() {
+            // 复制成功后的处理逻辑
+            button.textContent = '已复制';
+            setTimeout(function() {
+                button.textContent = '复制';
+            }, 2000); // 2 秒后恢复按钮文本
+        })
+        .catch(function(error) {
+            // 复制失败后的处理逻辑
+            console.error('复制失败:', error);
+        });
+}
+
+function loadUrlPath(){
+    $("#url-qr").append(`<img src="/qr?content=${window.location.href}" alt="${window.location.href}"/>`)
 }

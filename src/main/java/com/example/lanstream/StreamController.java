@@ -72,7 +72,9 @@ public class StreamController {
 	}
 	
 	@GetMapping("/qr")
-	public ResponseEntity<byte[]> getQr(@RequestParam(name = "width", defaultValue = "100") int width, @RequestParam(value = "height", defaultValue = "100") int height) throws IOException, WriterException {
+	public ResponseEntity<byte[]> getQr(@RequestParam(name = "width", defaultValue = "100") int width,
+										@RequestParam(value = "height", defaultValue = "100") int height,
+										@RequestParam(value = "content") String content) throws IOException, WriterException {
 		QRCodeWriter qrCodeWriter = new QRCodeWriter();
 		BitMatrix bitMatrix = qrCodeWriter.encode(hostUrl, BarcodeFormat.QR_CODE, width, height);
 		ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();

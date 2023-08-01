@@ -42,9 +42,10 @@ body {
 .qr{
     width: 100%;
     text-align: center;
+    padding-bottom: 10px;
 }
 .qr img {
-    
+    padding-bottom: 5px;
 }
 
 .status {

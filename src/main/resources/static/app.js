@@ -4,9 +4,11 @@ function setConnected(connected) {
     if (connected) {
         $("#status").attr("style", "background-color: green");
         $("#status").text("已连接")
+        loadUrlPath()
     } else {
         $("#status").attr("style", "background-color: red");
         $("#status").text("断开连接")
+        $("#url-qr").html(`<img src="/reconnect.png" style="width: 100px;height: 100px" alt="重连"/>`)
     }
 }
 
@@ -110,7 +112,7 @@ function showMessage(data) {
             .replaceAll('>', '&gt')
         $("#history").prepend(`<tr><td>
         <pre><code>${content}</code></pre>
-        <div class="button-content" onclick="copyCode(this)">复制</div>
+        <div class="button-content" data-clipboard-snippet>复制</div>
         <span class="msg-time">${new Date(data.timestamp).toLocaleString()}</span>
         </td></tr>`);
     } else {
@@ -138,7 +140,7 @@ window.onload = function () {
     $("form").on('submit', function (e) {
         e.preventDefault();
     });
-    $("#connect").click(function () {
+    $("#url-qr").click(function () {
         connect();
     });
     $("#disconnect").click(function () {
@@ -153,27 +155,26 @@ window.onload = function () {
     connect();
     showHistoryMsg();
     loadUrlPath();
-}
 
-window.focus = function (){
-    console.log("重新连接！")
-    connect()
-}
-
-
-/**
- * https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
- */
-function copyTextToClipboard(e) {
-    let transfer = document.createElement('textarea');
-    document.body.appendChild(transfer);
-    transfer.value = $(e).text();  // 这里表示想要复制的内容
-    transfer.focus();
-    transfer.select();
-    if (document.execCommand('copy')) {
-        document.execCommand('copy');
-    }
-    document.body.removeChild(transfer);
+    /**
+     * 剪贴板
+     * @type {ClipboardJS}
+     */
+    let clipboardSnippets = new ClipboardJS('[data-clipboard-snippet]',{
+        target: function(trigger) {
+            return trigger.previousElementSibling;
+        }
+    });
+    clipboardSnippets.on('success', function(e) {
+        e.clearSelection()
+        e.trigger.textContent = '已复制';
+        setTimeout(function() {
+            e.trigger.textContent = '复制';
+        }, 2000); // 2 秒后恢复按钮文本
+    });
+    clipboardSnippets.on('error', function(e) {
+        e.trigger.textContent = '复制失败！';
+    });
 }
 
 function isAssetTypeAnImage(ext) {
@@ -187,48 +188,6 @@ function downloadFile(url) {
     $form.submit();
 }
 
-function copyCode(button) {
-    var code = button.previousElementSibling.textContent;
-
-    copyToClipboard(code)
-        .then(function() {
-            // 复制成功后的处理逻辑
-            button.textContent = '已复制';
-            setTimeout(function() {
-                button.textContent = '复制';
-            }, 2000); // 2 秒后恢复按钮文本
-        })
-        .catch(function(error) {
-            // 复制失败后的处理逻辑
-            console.error('复制失败:', error);
-        });
-}
-
-function copyToClipboard(textToCopy) {
-    // navigator clipboard 需要https等安全上下文
-    if (navigator.clipboard && window.isSecureContext && false) {
-        // navigator clipboard 向剪贴板写文本
-        return navigator.clipboard.writeText(textToCopy);
-    } else {
-        // 创建text area
-        let textArea = document.createElement("textarea");
-        textArea.value = textToCopy;
-        // 使text area不在viewport，同时设置不可见
-        textArea.style.position = "absolute";
-        textArea.style.opacity = 0;
-        textArea.style.left = "-999999px";
-        textArea.style.top = "-999999px";
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        return new Promise((res, rej) => {
-            // 执行复制命令并移除文本框
-            document.execCommand('copy') ? res() : rej();
-            textArea.remove();
-        });
-    }
-}
-
 function loadUrlPath(){
-    $("#url-qr").append(`<img src="/qr?content=${window.location.href}" alt="${window.location.href}"/>`)
+    $("#url-qr").html(`<img src="/qr?content=${window.location.href}" alt="${window.location.href}"/>`)
 }

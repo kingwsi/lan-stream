@@ -9,6 +9,10 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.context.WebServerApplicationContext;
+import org.springframework.boot.web.context.WebServerInitializedEvent;
+import org.springframework.boot.web.server.WebServer;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,6 +27,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -33,55 +39,57 @@ import java.util.concurrent.ArrayBlockingQueue;
 @Controller
 public class StreamController {
 
-	@Autowired
-	private ArrayBlockingQueue<Message> arrayBlockingQueue;
-	
-	@Value("${host.url}")
-	private String hostUrl;
+    @Autowired
+    private ArrayBlockingQueue<Message> arrayBlockingQueue;
 
-	@Value("${max-history}")
-	private int maxHistory = 10;
+    @Value("${max-history}")
+    private int maxHistory = 20;
 
-	@Value("${web.upload-path}")
-	private String uploadPath;
+    @Value("${web.upload-path}")
+    private String uploadPath;
 
-	@MessageMapping("/send")
-	@SendTo("/topic/message")
-	public Message greeting(Message message) {
-		if (!message.isOld()) {
-			if (arrayBlockingQueue.size() >= maxHistory) {
-				Message poll = arrayBlockingQueue.poll();
-				try {
-					// 删除无效文件
-					if (poll != null && "text".equals(poll.getType()) && StringUtils.hasText(poll.getContent())) {
-						Files.deleteIfExists(Paths.get(uploadPath, poll.getContent()));
-					}
-				} catch (Exception e) {
-					log.error("删除失败：{}, {}", e, poll);
-				}
-			}
-			arrayBlockingQueue.add(message);
-		}
-		return message;
-	}
+    @Autowired
+    WebServerApplicationContext applicationContext;
 
-	@GetMapping("/history")
-	@ResponseBody
-	public List<Message> greeting() {
-		return new ArrayList<>(arrayBlockingQueue);
-	}
-	
-	@GetMapping("/qr")
-	public ResponseEntity<byte[]> getQr(@RequestParam(name = "width", defaultValue = "100") int width,
-										@RequestParam(value = "height", defaultValue = "100") int height,
-										@RequestParam(value = "content") String content) throws IOException, WriterException {
-		QRCodeWriter qrCodeWriter = new QRCodeWriter();
-		BitMatrix bitMatrix = qrCodeWriter.encode(hostUrl, BarcodeFormat.QR_CODE, width, height);
-		ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
-		MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
-		byte[] qrCode = pngOutputStream.toByteArray();
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.IMAGE_PNG);
-		return new ResponseEntity<>(qrCode, headers, HttpStatus.CREATED);
-	}
+    @MessageMapping("/send")
+    @SendTo("/topic/message")
+    public Message greeting(Message message) {
+        if (!message.isOld()) {
+            if (arrayBlockingQueue.size() >= maxHistory) {
+                Message poll = arrayBlockingQueue.poll();
+                try {
+                    // 删除无效文件
+                    if (poll != null && "text".equals(poll.getType()) && StringUtils.hasText(poll.getContent())) {
+                        Files.deleteIfExists(Paths.get(uploadPath, poll.getContent()));
+                    }
+                } catch (Exception e) {
+                    log.error("删除失败：{}, {}", e, poll);
+                }
+            }
+            arrayBlockingQueue.add(message);
+        }
+        return message;
+    }
+
+    @GetMapping("/history")
+    @ResponseBody
+    public List<Message> greeting() {
+        return new ArrayList<>(arrayBlockingQueue);
+    }
+
+    @GetMapping("/qr")
+    public ResponseEntity<byte[]> getQr(@RequestParam(name = "width", defaultValue = "100") int width,
+                                        @RequestParam(value = "height", defaultValue = "100") int height) throws IOException, WriterException {
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        int port = applicationContext.getWebServer().getPort();
+        log.info("host: {}:{}", ip, port);
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        BitMatrix bitMatrix = qrCodeWriter.encode("http://" + ip + ":" + port, BarcodeFormat.QR_CODE, width, height);
+        ByteArrayOutputStream pngOutputStream = new ByteArrayOutputStream();
+        MatrixToImageWriter.writeToStream(bitMatrix, "PNG", pngOutputStream);
+        byte[] qrCode = pngOutputStream.toByteArray();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_PNG);
+        return new ResponseEntity<>(qrCode, headers, HttpStatus.CREATED);
+    }
 }

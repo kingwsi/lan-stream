@@ -201,15 +201,8 @@ func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	}
 	hub.register <- conn
 
-	// Send recent history to the new client
-	recentMessages := recentHistory.Get()
-	for _, msg := range recentMessages {
-		jsonMsg, _ := json.Marshal(msg)
-		if err := conn.WriteMessage(websocket.TextMessage, jsonMsg); err != nil {
-			log.Println("write history:", err)
-			break
-		}
-	}
+	// History is now loaded via pagination API, not through WebSocket
+	// This prevents duplicate messages
 
 	defer func() {
 		hub.unregister <- conn
@@ -270,8 +263,18 @@ func uploadFile(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 func serveHistory(w http.ResponseWriter, r *http.Request) {
 	filterType := r.URL.Query().Get("type")
-	messages := history.Get()
+	limitStr := r.URL.Query().Get("limit")
+	offsetStr := r.URL.Query().Get("offset")
+	
+	allMessages := history.Get()
+	
+	// Create a copy to reverse
+	messages := make([]Message, len(allMessages))
+	for i, msg := range allMessages {
+		messages[len(allMessages)-1-i] = msg
+	}
 
+	// Filter by type if specified
 	if filterType != "" {
 		filteredMessages := make([]Message, 0)
 		for _, msg := range messages {
@@ -282,8 +285,43 @@ func serveHistory(w http.ResponseWriter, r *http.Request) {
 		messages = filteredMessages
 	}
 
+	// Apply pagination if limit is specified
+	totalCount := len(messages)
+	if limitStr != "" {
+		limit := 20 // default
+		if l, err := fmt.Sscanf(limitStr, "%d", &limit); err == nil && l == 1 {
+			// limit parsed successfully
+		}
+		
+		offset := 0
+		if offsetStr != "" {
+			if o, err := fmt.Sscanf(offsetStr, "%d", &offset); err == nil && o == 1 {
+				// offset parsed successfully
+			}
+		}
+
+		// Calculate slice bounds
+		start := offset
+		if start > totalCount {
+			start = totalCount
+		}
+		
+		end := start + limit
+		if end > totalCount {
+			end = totalCount
+		}
+
+		messages = messages[start:end]
+	}
+
+	// Return response with pagination info
+	response := map[string]interface{}{
+		"messages": messages,
+		"total":    totalCount,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(messages)
+	json.NewEncoder(w).Encode(response)
 }
 
 func deleteHistoryItem(w http.ResponseWriter, r *http.Request) {

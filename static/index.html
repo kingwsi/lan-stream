@@ -1,110 +1,319 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LAN Stream</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <!-- Fonts: Inter for UI, Lora for "editorial" feel similar to Claude -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Lora', 'serif'],
+                    },
+                    colors: {
+                        // Claude-inspired warm palette (using CSS variables for Dark Mode support)
+                        claude: {
+                            bg: 'var(--claude-bg)',
+                            surface: 'var(--claude-surface)',
+                            sider: 'var(--claude-sider)',
+                            text: 'var(--claude-text)',
+                            muted: 'var(--claude-muted)',
+                            border: 'var(--claude-border)',
+                            accent: 'var(--claude-accent)',
+                            accentHover: 'var(--claude-accent-hover)',
+                            input: 'var(--claude-input)',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(4px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(10px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            /* Light Mode (Claude Original) */
+            --claude-bg: #FAF8F6;
+            --claude-surface: #FFFFFF;
+            --claude-sider: #F3F0EB;
+            --claude-text: #393933;
+            --claude-muted: #6B6B63;
+            --claude-border: #E8E6E1;
+            --claude-accent: #DA7756;
+            --claude-accent-hover: #C26344;
+            --claude-input: #FBFBFA;
+        }
+
+        .dark {
+            /* Dark Mode (Dark Claude-ish) */
+            --claude-bg: #18181b;
+            /* Zinc 950 */
+            --claude-surface: #202023;
+            /* Darker Surface */
+            --claude-sider: #27272a;
+            /* Zinc 800 */
+            --claude-text: #f4f4f5;
+            /* Zinc 100 */
+            --claude-muted: #a1a1aa;
+            /* Zinc 400 */
+            --claude-border: #3f3f46;
+            /* Zinc 700 */
+            --claude-accent: #F09174;
+            /* Lighter/Softer Orange for Dark */
+            --claude-accent-hover: #DA7756;
+            --claude-input: #27272a;
+        }
+
+        /* Refined Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--claude-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--claude-muted);
+        }
+
+        .claude-shadow {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .claude-input-shadow {
+            box-shadow: 0 0 0 1px #E5E2DB, 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .claude-input-focus {
+            box-shadow: 0 0 0 2px #DA775620, 0 1px 2px rgba(0, 0, 0, 0.05);
+            border-color: #DA7756;
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <h1>LAN Stream</h1>
-        <p>Share text and files instantly across your local network.</p>
 
-        <div class="input-container">
-            <textarea id="message-input" placeholder="Type a message..." rows="3"></textarea>
-            <div id="attach-file-btn" class="icon-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-paperclip"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+<body
+    class="bg-claude-bg text-claude-text font-sans h-screen flex flex-col overflow-hidden antialiased selection:bg-claude-accent/20">
+
+    <!-- Header: Minimal & Clean -->
+    <header
+        class="flex-none h-14 px-6 flex justify-between items-center z-10 sticky top-0 bg-claude-bg/90 backdrop-blur-sm">
+        <div class="flex items-center gap-3 cursor-pointer hover:opacity-70 transition-opacity"
+            onclick="window.location.reload()" title="Refresh Page">
+            <div
+                class="w-8 h-8 rounded-lg bg-claude-sider border border-claude-border flex items-center justify-center p-1.5 text-claude-accent">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-full h-full">
+                    <path
+                        d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+                    <path
+                        d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
+                </svg>
             </div>
-            <div id="send-btn" class="icon-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-            </div>
-            <input type="file" id="file-input" style="display: none;">
+            <h1 class="text-lg font-serif font-medium text-claude-text">LAN Stream</h1>
         </div>
 
-        <div class="history-container">
-            <ul id="history-list"></ul>
-        </div>
-
-        <div class="bottom-controls">
-            <a href="#" id="open-resource-center">Resources</a>
-            <span class="link-separator">|</span>
-            <a href="#" id="clear-history-btn">Clear History</a>
-            <span class="link-separator">|</span>
-            <button id="theme-toggle-btn">
-                <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- Controls -->
+        <div class="flex items-center gap-2">
+            <!-- Theme Toggle (Simplified visually) -->
+            <button id="theme-toggle-btn"
+                class="p-2 rounded-lg text-claude-muted hover:bg-claude-sider hover:text-claude-text transition-colors"
+                title="Toggle Theme">
+                <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
             </button>
         </div>
+    </header>
+
+    <!-- Main Content Area: Full-screen scrollable -->
+    <main class="flex-1 w-full overflow-y-auto pb-48" id="history-container">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+            <!-- Welcome Message -->
+            <div id="welcome-message" class="hidden flex flex-col items-center justify-center text-center p-8">
+                <div
+                    class="w-16 h-16 bg-claude-surface rounded-2xl shadow-sm border border-claude-border flex items-center justify-center mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                        class="text-claude-accent">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-serif text-claude-text mb-2">Welcome to LAN Stream</h2>
+                <p class="text-claude-muted max-w-md">Share messages and files across your local network instantly.</p>
+            </div>
+
+            <!-- Load More Button -->
+            <div id="load-more-container" class="hidden flex justify-center mb-6">
+                <button id="load-more-btn"
+                    class="px-4 py-2 text-sm font-medium text-claude-accent hover:text-claude-accentHover bg-claude-surface border border-claude-border rounded-full shadow-sm hover:shadow transition-all flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M7 13l5-5 5 5M7 6l5-5 5 5" />
+                    </svg>
+                    Load Older Messages
+                </button>
+            </div>
+
+            <!-- History List -->
+            <ul id="history-list" class="space-y-6">
+                <!-- Javascript will populate this -->
+            </ul>
+        </div>
+    </main>
+
+    <!-- Input Area: Fixed at bottom, floating above content -->
+    <div class="fixed bottom-0 left-0 right-0 z-30 bg-claude-bg">
+        <div class="max-w-3xl mx-auto p-4">
+            <div
+                class="input-container bg-claude-input rounded-xl relative flex flex-col transition-all duration-200 claude-input-shadow focus-within:ring-1 focus-within:ring-claude-accent/30 focus-within:border-claude-accent/30">
+
+                <textarea id="message-input" placeholder="Message or drag file..." rows="1"
+                    class="w-full bg-transparent text-claude-text placeholder-claude-muted/70 focus:outline-none resize-none px-4 py-3 min-h-[56px] max-h-[200px] overflow-y-auto rounded-xl font-sans text-[15px] leading-relaxed"></textarea>
+
+                <div class="flex justify-between items-center px-2 pb-2 mt-1">
+                    <div class="flex gap-1 pl-1">
+                        <div id="attach-file-btn"
+                            class="p-2 rounded-lg cursor-pointer text-claude-muted hover:text-claude-text hover:bg-claude-sider transition-all"
+                            title="Attach File">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div id="send-btn"
+                        class="p-1.5 rounded-lg cursor-pointer bg-claude-accent text-white hover:bg-claude-accentHover shadow-sm transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Send">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </div>
+                </div>
+                <!-- Hidden inputs -->
+                <input type="file" id="file-input" style="display: none;">
+            </div>
+
+            <div class="mt-3 flex justify-center items-center gap-4 text-xs font-medium text-claude-muted">
+                <a href="#" id="open-resource-center" class="hover:text-claude-text transition-colors">
+                    Resources
+                </a>
+                <span class="text-claude-border">|</span>
+                <a href="#" id="clear-history-btn" class="hover:text-red-500 transition-colors">
+                    Clear History
+                </a>
+            </div>
+        </div>
     </div>
 
-    <div id="resource-center-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h2>Resources</h2>
-            <ul id="full-history-list"></ul>
+    <!-- Modal -->
+    <div id="resource-center-modal"
+        class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#1F1F1E]/40 backdrop-blur-sm transition-opacity">
+        <div
+            class="modal-content bg-claude-surface w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-slide-up border border-claude-border">
+            <div class="p-5 border-b border-claude-border flex justify-between items-center bg-claude-bg">
+                <h2 class="text-lg font-serif font-medium text-claude-text">Resources</h2>
+                <span
+                    class="close-btn cursor-pointer p-1.5 rounded-md hover:bg-claude-border/50 text-claude-muted hover:text-claude-text transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </span>
+            </div>
+            <div class="overflow-y-auto p-0 flex-1 bg-claude-surface">
+                <ul id="full-history-list" class="divide-y divide-claude-border">
+                    <!-- Populated by JS -->
+                </ul>
+            </div>
         </div>
     </div>
 
     <script src="/static/app.js"></script>
     <script>
+        // Inline script to handle text area auto-resize
+        const tx = document.getElementById('message-input');
+        tx.addEventListener("input", function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Theme Handling
         const themeToggleButton = document.getElementById('theme-toggle-btn');
         const themeIcon = document.getElementById('theme-icon');
-        const body = document.body;
+        const html = document.documentElement;
 
-        const sunIcon = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-            </svg>`;
-
-        const moonIcon = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>`;
+        // Use simpler icons for Claude style
+        const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+        const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
 
         function setTheme(theme) {
             if (theme === 'dark') {
-                body.classList.add('dark-mode');
+                html.classList.add('dark');
                 themeIcon.innerHTML = sunIcon;
                 localStorage.setItem('theme', 'dark');
+                // Note: Currently 'dark' mode just defaults to standard Tailwind dark. 
+                // A true "Dark Claude" would need specific overrides in the tailwind config under .dark
+                // For now, focusing on the light "Claude" experience as primary.
             } else {
-                body.classList.remove('dark-mode');
+                html.classList.remove('dark');
                 themeIcon.innerHTML = moonIcon;
                 localStorage.setItem('theme', 'light');
             }
         }
 
         themeToggleButton.addEventListener('click', () => {
-            const currentTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             setTheme(newTheme);
         });
 
-        // Auto-detect system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+        // Initialize (Default to light for that Claude feel unless explicitly dark)
         const savedTheme = localStorage.getItem('theme');
-
         if (savedTheme) {
             setTheme(savedTheme);
         } else {
-            setTheme(prefersDark.matches ? 'dark' : 'light');
+            // Claude is famously light-mode first (at least originally). Let's default to system, but the design shines in light.
+            setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         }
-
-        prefersDark.addEventListener('change', (e) => {
-            // Only change if the user hasn't manually set a theme
-            if (!localStorage.getItem('theme')) {
-                setTheme(e.matches ? 'dark' : 'light');
-            }
-        });
     </script>
 </body>
+
 </html>
